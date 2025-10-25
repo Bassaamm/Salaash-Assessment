@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { notificationsApi, type QueryParams } from '@/lib/api';
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { notificationsApi, type QueryParams } from "@/lib/api";
 import {
   Table,
   TableBody,
@@ -8,39 +8,40 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { ChevronLeft, ChevronRight, Search, Plus } from 'lucide-react';
-import { CreateNotificationDialog } from '../dialogs/CreateNotificationDialog';
-import { toast } from 'sonner';
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ChevronLeft, ChevronRight, Search, Plus } from "lucide-react";
+import { CreateNotificationDialog } from "../dialogs/CreateNotificationDialog";
+import { toast } from "sonner";
 
 export function NotificationsSection() {
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
-  const [status, setStatus] = useState<string>('all');
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   const queryClient = useQueryClient();
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
   const queryParams: QueryParams = {
     page,
     limit: 10,
-    ...(search && { search }),
-    ...(status !== 'all' && { status }),
+    ...(debouncedSearch && { search: debouncedSearch }),
   };
 
   const { data, isLoading } = useQuery({
-    queryKey: ['notifications', queryParams],
+    queryKey: ["notifications", queryParams],
     queryFn: () => notificationsApi.getAll(queryParams).then((res) => res.data),
   });
 
@@ -53,27 +54,30 @@ export function NotificationsSection() {
       idempotencyKey?: string;
     }) => notificationsApi.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
       setCreateDialogOpen(false);
-      toast.success('Notification created', {
-        description: 'The notification has been queued successfully.',
+      toast.success("Notification created", {
+        description: "The notification has been queued successfully.",
       });
     },
     onError: (error: any) => {
-      toast.error('Failed to create notification', {
-        description: error.response?.data?.message || 'An error occurred',
+      toast.error("Failed to create notification", {
+        description: error.response?.data?.message || "An error occurred",
       });
     },
   });
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-      pending: 'secondary',
-      sent: 'default',
-      failed: 'destructive',
-      processing: 'secondary',
+    const variants: Record<
+      string,
+      "default" | "secondary" | "destructive" | "outline"
+    > = {
+      pending: "secondary",
+      sent: "default",
+      failed: "destructive",
+      processing: "secondary",
     };
-    return <Badge variant={variants[status] || 'outline'}>{status}</Badge>;
+    return <Badge variant={variants[status] || "outline"}>{status}</Badge>;
   };
 
   return (
@@ -93,25 +97,15 @@ export function NotificationsSection() {
             <Input
               placeholder="Search by recipient ID..."
               value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
+              onChange={(e) => setSearch(e.target.value)}
               className="pl-9"
             />
+            {search !== debouncedSearch && (
+              <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-muted-foreground">
+                Searching...
+              </span>
+            )}
           </div>
-          <Select value={status} onValueChange={(v) => { setStatus(v); setPage(1); }}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="sent">Sent</SelectItem>
-              <SelectItem value="failed">Failed</SelectItem>
-              <SelectItem value="processing">Processing</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
 
         {isLoading ? (
@@ -138,10 +132,14 @@ export function NotificationsSection() {
                         {notification.recipientId}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">{notification.channel?.type || 'N/A'}</Badge>
+                        <Badge variant="outline">
+                          {notification.channel?.type || "N/A"}
+                        </Badge>
                       </TableCell>
                       <TableCell>{notification.templateName}</TableCell>
-                      <TableCell>{getStatusBadge(notification.status)}</TableCell>
+                      <TableCell>
+                        {getStatusBadge(notification.status)}
+                      </TableCell>
                       <TableCell>{notification.retryCount}</TableCell>
                       <TableCell>
                         {new Date(notification.createdAt).toLocaleDateString()}
@@ -149,7 +147,7 @@ export function NotificationsSection() {
                       <TableCell>
                         {notification.sentAt
                           ? new Date(notification.sentAt).toLocaleDateString()
-                          : '-'}
+                          : "-"}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -159,11 +157,12 @@ export function NotificationsSection() {
 
             <div className="flex items-center justify-between mt-4">
               <div className="text-sm text-muted-foreground">
-                Showing {data.meta.itemsPerPage * (data.meta.currentPage - 1) + 1} to{' '}
+                Showing{" "}
+                {data.meta.itemsPerPage * (data.meta.currentPage - 1) + 1} to{" "}
                 {Math.min(
                   data.meta.itemsPerPage * data.meta.currentPage,
                   data.meta.totalItems
-                )}{' '}
+                )}{" "}
                 of {data.meta.totalItems} notifications
               </div>
               <div className="flex gap-2">
