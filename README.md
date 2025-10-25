@@ -48,6 +48,7 @@ This starts all services:
 - Mailpit (Email Testing)
 - **API Service** (NestJS on port 3000)
 - **Worker Service** (NestJS)
+- **Front-end Application** (React on port 3001)
 
 **3. Verify**
 
