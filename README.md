@@ -32,6 +32,14 @@ cd salaash-assessment-v2
 docker-compose up -d
 ```
 
+I developed a small front-end application to see the data visually if wanted
+```bash
+cd notifications-dashboard
+npm run dev
+```
+
+also postman .json file is provided if want to test the endpoints using postman
+
 This starts all services:
 
 - PostgreSQL (Database)
