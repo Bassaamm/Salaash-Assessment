@@ -1,0 +1,662 @@
+{
+  "info": {
+    "name": "Notification Service API",
+    "description": "Complete API collection for the Notification Service - Multi-Channel Event-Driven System\n\nSupports Email, SMS, and Push notifications with event-driven architecture, retry logic, and comprehensive status tracking.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "notification-service"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "channelId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "notificationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "orderId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "templateId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Check if the API service is running"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Channels",
+      "item": [
+        {
+          "name": "Get Available Channels",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/channels/available",
+              "host": ["{{baseUrl}}"],
+              "path": ["channels", "available"]
+            },
+            "description": "Get list of available channel types (Email, SMS, Push)"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Email Channel",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('channelId', response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Primary Email Channel\",\n  \"type\": \"email\",\n  \"configuration\": {\n    \"host\": \"localhost\",\n    \"port\": 1025,\n    \"secure\": false,\n    \"from\": \"noreply@example.com\"\n  },\n  \"description\": \"Mailpit SMTP for development\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/channels",
+              "host": ["{{baseUrl}}"],
+              "path": ["channels"]
+            },
+            "description": "Create a new email channel (configured for Mailpit in development)"
+          },
+          "response": []
+        },
+        {
+          "name": "Create SMS Channel",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Twilio SMS Channel\",\n  \"type\": \"sms\",\n  \"configuration\": {\n    \"provider\": \"twilio\",\n    \"accountSid\": \"your-account-sid\",\n    \"authToken\": \"your-auth-token\",\n    \"fromNumber\": \"+1234567890\"\n  },\n  \"description\": \"Twilio SMS service\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/channels",
+              "host": ["{{baseUrl}}"],
+              "path": ["channels"]
+            },
+            "description": "Create a new SMS channel (Twilio)"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Push Channel",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Firebase Push Channel\",\n  \"type\": \"push\",\n  \"configuration\": {\n    \"provider\": \"fcm\",\n    \"serverKey\": \"your-fcm-server-key\"\n  },\n  \"description\": \"Firebase Cloud Messaging\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/channels",
+              "host": ["{{baseUrl}}"],
+              "path": ["channels"]
+            },
+            "description": "Create a new push notification channel (FCM)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Channels",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/channels?isActive=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["channels"],
+              "query": [
+                {
+                  "key": "isActive",
+                  "value": "true",
+                  "description": "Filter by active status"
+                },
+                {
+                  "key": "type",
+                  "value": "email",
+                  "description": "Filter by channel type",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get all channels with optional filters"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Channel by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/channels/{{channelId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["channels", "{{channelId}}"]
+            },
+            "description": "Get a specific channel by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Channel",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/channels/{{channelId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["channels", "{{channelId}}"]
+            },
+            "description": "Update channel configuration or status"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Channel",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/channels/{{channelId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["channels", "{{channelId}}"]
+            },
+            "description": "Soft delete a channel"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Create Notification",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('notificationId', response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recipientId\": \"customer@example.com\",\n  \"channelId\": \"{{channelId}}\",\n  \"templateName\": \"welcome_email\",\n  \"data\": {\n    \"name\": \"John Doe\",\n    \"message\": \"Welcome to our service!\"\n  },\n  \"idempotencyKey\": \"unique-key-{{$timestamp}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/notifications",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications"]
+            },
+            "description": "Create a new notification. The notification will be queued and processed asynchronously."
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "status",
+                  "value": "sent",
+                  "description": "Filter by status: pending, sent, failed",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "customer@example.com",
+                  "description": "Search by recipient ID",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get all notifications with pagination and optional filters"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Notification by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/{{notificationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "{{notificationId}}"]
+            },
+            "description": "Get a specific notification by ID with full details"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Notification",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"sent\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/notifications/{{notificationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "{{notificationId}}"]
+            },
+            "description": "Update notification status or metadata"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Notification",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/{{notificationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "{{notificationId}}"]
+            },
+            "description": "Soft delete a notification"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Create Order (Multi-Channel)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('orderId', response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"customer@example.com\",\n  \"total\": 99.99,\n  \"channelIds\": [\"{{channelId}}\"],\n  \"metadata\": {\n    \"items\": [\"Product A\", \"Product B\"],\n    \"shippingAddress\": \"123 Main St, City, Country\"\n  },\n  \"notes\": \"Please deliver after 5 PM\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["orders"]
+            },
+            "description": "Create an order and trigger notifications through specified channels. If channelIds is empty, uses all active channels."
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orders?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["orders"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "userId",
+                  "value": "customer@example.com",
+                  "description": "Filter by user ID",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get all orders with pagination and optional filters"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Order by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{orderId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["orders", "{{orderId}}"]
+            },
+            "description": "Get a specific order by ID with all notifications"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Order",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Updated delivery instructions\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{orderId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["orders", "{{orderId}}"]
+            },
+            "description": "Update order details"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Order",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{orderId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["orders", "{{orderId}}"]
+            },
+            "description": "Soft delete an order"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Templates",
+      "item": [
+        {
+          "name": "Create Email Template",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('templateId', response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"order_confirmation\",\n  \"channel\": \"email\",\n  \"subject\": \"Order Confirmation - Order ###orderId###\",\n  \"body\": \"<html><body><h1>Thank you for your order!</h1><p>Hi ###customerName###,</p><p>Your order ###orderId### has been confirmed.</p><p>Total: $###total###</p><p><a href='###orderUrl###'>View Order</a></p></body></html>\",\n  \"variables\": [\"orderId\", \"customerName\", \"total\", \"orderUrl\"],\n  \"metadata\": {\n    \"from_name\": \"Order Team\",\n    \"reply_to\": \"orders@example.com\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/templates",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "templates"]
+            },
+            "description": "Create a new email template with placeholders using ### syntax"
+          },
+          "response": []
+        },
+        {
+          "name": "Create SMS Template",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"order_sms\",\n  \"channel\": \"sms\",\n  \"body\": \"Hi ###customerName###! Your order ###orderId### is confirmed. Total: $###total###. Track: ###trackingUrl###\",\n  \"variables\": [\"customerName\", \"orderId\", \"total\", \"trackingUrl\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/templates",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "templates"]
+            },
+            "description": "Create a new SMS template"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Templates",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/templates?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "templates"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "channel",
+                  "value": "email",
+                  "description": "Filter by channel",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get all templates with pagination and filters"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Templates by Channel",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/templates/channel/email",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "templates", "channel", "email"]
+            },
+            "description": "Get all active templates for a specific channel (email, sms, or push)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Template by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/templates/{{templateId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "templates", "{{templateId}}"]
+            },
+            "description": "Get a specific template by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Template",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subject\": \"Updated Order Confirmation - Order ###orderId###\",\n  \"body\": \"<html><body><h1>Order Confirmed!</h1><p>Hi ###customerName###,</p><p>Order ###orderId### confirmed. Total: $###total###</p></body></html>\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/templates/{{templateId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "templates", "{{templateId}}"]
+            },
+            "description": "Update a template (increments version automatically)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Template",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/templates/{{templateId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "templates", "{{templateId}}"]
+            },
+            "description": "Soft delete a template"
+          },
+          "response": []
+        },
+        {
+          "name": "Restore Template",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/templates/{{templateId}}/restore",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "templates", "{{templateId}}", "restore"]
+            },
+            "description": "Restore a soft-deleted template"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
