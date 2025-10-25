@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{subject}}</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+    .email-container {
+      max-width: 600px;
+      margin: 20px auto;
+      background-color: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .header {
+      background-color: #4CAF50;
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+    .content {
+      padding: 30px;
+      color: #333;
+      line-height: 1.6;
+    }
+    .title {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    .body-text {
+      font-size: 16px;
+      margin-bottom: 30px;
+      white-space: pre-line;
+    }
+    .cta-button {
+      display: inline-block;
+      background-color: #4CAF50;
+      color: white !important;
+      padding: 15px 30px;
+      text-decoration: none;
+      border-radius: 5px;
+      font-weight: bold;
+      margin: 20px 0;
+    }
+    .cta-button:hover {
+      background-color: #45a049;
+    }
+    .footer {
+      background-color: #f9f9f9;
+      padding: 20px;
+      text-align: center;
+      font-size: 12px;
+      color: #999;
+    }
+    .order-details {
+      background-color: #f9f9f9;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 20px 0;
+    }
+    .order-details strong {
+      color: #4CAF50;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <h1>📦 Order Confirmation</h1>
+    </div>
+    
+    <div class="content">
+      {{#if title}}
+      <div class="title">{{title}}</div>
+      {{/if}}
+      
+      {{#if body}}
+      <div class="body-text">{{body}}</div>
+      {{/if}}
+      
+      {{#if orderId}}
+      <div class="order-details">
+        <strong>Order Details:</strong><br>
+        Order Number: <strong>#{{orderId}}</strong><br>
+        {{#if customerName}}
+        Customer: {{customerName}}<br>
+        {{/if}}
+        {{#if total}}
+        Total: <strong>${{total}}</strong>
+        {{/if}}
+      </div>
+      {{/if}}
+      
+      {{#if ctaLink}}
+      <div style="text-align: center;">
+        <a href="{{ctaLink}}" class="cta-button">{{ctaText}}</a>
+      </div>
+      {{/if}}
+    </div>
+    
+    <div class="footer">
+      <p>© 2024 Notification Service. All rights reserved.</p>
+      <p>If you have any questions, please contact our support team.</p>
+    </div>
+  </div>
+</body>
+</html>
